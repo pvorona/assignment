@@ -12,7 +12,10 @@ export const appRouter = t.router({
     return db.customer.findFirst({ where: { id } });
   }),
   deleteCustomer: t.procedure.input(string()).query(({ input: id }) => {
-    return db.customer.delete({ where: { id } });
+    return Promise.all([
+      db.address.deleteMany({ where: { customerId: id } }),
+      db.customer.delete({ where: { id } }),
+    ]);
   }),
   createCustomer: t.procedure.input(string()).mutation(({ input: name }) => {
     return db.customer.create({ data: { name } });
@@ -21,6 +24,16 @@ export const appRouter = t.router({
     .input(object({ id: string(), name: string().optional() }))
     .mutation(({ input: { id, ...payload } }) => {
       return db.customer.update({ where: { id }, data: payload });
+    }),
+  createAddress: t.procedure
+    .input(
+      object({
+        customerId: string(),
+        location: string(),
+      })
+    )
+    .mutation(({ input }) => {
+      return db.address.create({ data: input });
     }),
 });
 
