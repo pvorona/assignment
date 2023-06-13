@@ -1,18 +1,15 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import express from 'express';
-import * as path from 'path';
+import { appRouter } from './router';
+import * as trpcExpress from '@trpc/server/adapters/express';
 
 const app = express();
 
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to server!' });
-});
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+  })
+);
 
 const port = process.env.PORT || 3333;
 const server = app.listen(port, () => {
