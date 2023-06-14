@@ -1,18 +1,14 @@
 import { initTRPC } from '@trpc/server';
 import { object, string } from 'zod';
 import { db } from './db';
+import {
+  CHANNEL,
+  createCustomerCreatedMessage,
+  createCustomerDeletedMessage,
+} from './constants';
+import { getRedisClient } from './redis';
 
 export const t = initTRPC.create();
-
-const customerIds = new Set<string>();
-
-setInterval(async () => {
-  for (const customerId of customerIds) {
-    const location = (Math.random() + 1).toString(36).substring(2);
-    const address = await db.address.create({ data: { customerId, location } });
-    console.log('Created address', JSON.stringify(address));
-  }
-}, 1_000);
 
 export const appRouter = t.router({
   getCustomers: t.procedure.query(() => {
@@ -26,13 +22,21 @@ export const appRouter = t.router({
     .mutation(async ({ input: id }) => {
       await db.address.deleteMany({ where: { customerId: id } });
       await db.customer.delete({ where: { id } });
-      customerIds.delete(id);
+      const client = await getRedisClient();
+      await client.publish(
+        CHANNEL,
+        JSON.stringify(createCustomerDeletedMessage(id))
+      );
     }),
   createCustomer: t.procedure
     .input(string())
     .mutation(async ({ input: name }) => {
       const customer = await db.customer.create({ data: { name } });
-      customerIds.add(customer.id);
+      const client = await getRedisClient();
+      await client.publish(
+        CHANNEL,
+        JSON.stringify(createCustomerCreatedMessage(customer.id))
+      );
       return customer;
     }),
   updateCustomer: t.procedure
