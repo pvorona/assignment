@@ -1,6 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "strict": true,
     "rootDir": ".",
     "sourceMap": true,
     "declaration": false,
@@ -15,6 +16,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@pavel-assignment/core": ["packages/core/src/index.ts"],
       "@pavel-assignment/shared": ["packages/shared/src/index.ts"]
     }
   },

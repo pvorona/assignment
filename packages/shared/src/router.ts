@@ -2,11 +2,11 @@ import { initTRPC } from '@trpc/server';
 import { object, string } from 'zod';
 import { db } from './db';
 import {
-  CHANNEL,
   createCustomerCreatedMessage,
   createCustomerDeletedMessage,
-} from './constants';
-import { getRedisClient } from './redis';
+} from './utils';
+import { getPubClient } from './pubsub';
+import { CUSTOMERS_CHANNEL } from '@pavel-assignment/core';
 
 export const t = initTRPC.create();
 
@@ -22,9 +22,9 @@ export const appRouter = t.router({
     .mutation(async ({ input: id }) => {
       await db.address.deleteMany({ where: { customerId: id } });
       await db.customer.delete({ where: { id } });
-      const client = await getRedisClient();
-      await client.publish(
-        CHANNEL,
+      const pubClient = await getPubClient();
+      await pubClient.publish(
+        CUSTOMERS_CHANNEL,
         JSON.stringify(createCustomerDeletedMessage(id))
       );
     }),
@@ -32,9 +32,9 @@ export const appRouter = t.router({
     .input(string())
     .mutation(async ({ input: name }) => {
       const customer = await db.customer.create({ data: { name } });
-      const client = await getRedisClient();
-      await client.publish(
-        CHANNEL,
+      const pubClient = await getPubClient();
+      await pubClient.publish(
+        CUSTOMERS_CHANNEL,
         JSON.stringify(createCustomerCreatedMessage(customer.id))
       );
       return customer;

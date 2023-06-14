@@ -1,16 +1,22 @@
 import {
-  getRedisClient,
+  ADDRESSES_CHANNEL,
+  CUSTOMERS_CHANNEL,
   MessageType,
+} from '@pavel-assignment/core';
+import {
   db,
-  CHANNEL,
+  createAddressCreatedMessage,
+  getPubClient,
+  getSubClient,
 } from '@pavel-assignment/shared';
 
 const customerIds = new Set<string>();
 
 async function main() {
-  const client = await getRedisClient();
+  const subClient = await getSubClient();
+  const pubClient = await getPubClient();
 
-  client.subscribe(CHANNEL, function (rawMessage) {
+  subClient.subscribe(CUSTOMERS_CHANNEL, function (rawMessage) {
     const message = JSON.parse(rawMessage);
 
     if (message.type === MessageType.CustomerCreated) {
@@ -30,7 +36,10 @@ async function main() {
       const address = await db.address.create({
         data: { customerId, location },
       });
-      console.log('Created address', JSON.stringify(address));
+      await pubClient.publish(
+        ADDRESSES_CHANNEL,
+        JSON.stringify(createAddressCreatedMessage(address))
+      );
     }
   }, 1_000);
 }
