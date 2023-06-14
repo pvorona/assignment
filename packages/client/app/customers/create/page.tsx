@@ -1,19 +1,23 @@
 'use client';
 
-// import { useId } from 'react';
 import { CustomerForm } from '../../../components';
-// import { api } from './api';
-// import styles from './page.module.scss';
+import { api } from '../../api';
+import { useRouter } from 'next/navigation';
 
 export default function Index() {
-  // const customersQuery = api.getCustomers.useQuery();
+  const router = useRouter();
+  const createCustomerMutation = api.createCustomer.useMutation();
 
-  // return <div>{JSON.stringify(customersQuery.data)}</div>;
+  async function handleSubmit(name: string) {
+    await createCustomerMutation.mutateAsync(name);
+    router.push('/customers');
+  }
+
   return (
     <CustomerForm
       title="Create customer"
       initialName=""
-      onSubmit={console.log}
+      onSubmit={handleSubmit}
     />
   );
 }

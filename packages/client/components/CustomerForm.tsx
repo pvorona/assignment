@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type FormProps = {
   title: string;
@@ -10,6 +10,10 @@ type FormProps = {
 
 export function CustomerForm({ title, onSubmit, initialName }: FormProps) {
   const [name, setName] = useState(initialName);
+
+  useEffect(() => {
+    setName(initialName);
+  }, [initialName]);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -29,6 +33,8 @@ export function CustomerForm({ title, onSubmit, initialName }: FormProps) {
           Name
         </label>
         <input
+          autoFocus
+          autoComplete="false"
           type="text"
           className="form-control w-100"
           id="name"

@@ -1,20 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-
-const customers = [
-  { id: '1', name: 'Alex' },
-  { id: '2', name: 'John' },
-];
+import { api } from '../api';
 
 export default function Customers() {
-  function handleDeleteCustomer(id: string) {
-    console.log(id);
+  const customersQuery = api.getCustomers.useQuery();
+  const deleteCustomerMutation = api.deleteCustomer.useMutation();
+
+  async function handleDeleteCustomer(id: string) {
+    await deleteCustomerMutation.mutateAsync(id);
+    customersQuery.refetch();
   }
 
   return (
     <div className="container pt-4">
-      <h1 className="mb-4">Customers</h1>
+      <div className="d-flex align-items-center">
+        <h1 className="mb-4">Customers</h1>
+        <Link href={`/customers/create`} className="ms-auto btn btn-primary">
+          Create
+        </Link>
+      </div>
       <table className="table">
         <thead>
           <tr>
@@ -22,13 +27,13 @@ export default function Customers() {
               #
             </th>
             <th scope="col">Name</th>
-            <th scope="col" style={{ width: 220 }}>
+            <th scope="col" style={{ width: 300 }}>
               Actions
             </th>
           </tr>
         </thead>
         <tbody>
-          {customers.map((customer, index) => (
+          {customersQuery.data?.map((customer, index) => (
             <tr key={customer.id} className="align-middle">
               <th scope="row">{index + 1}</th>
               <td>{customer.name}</td>
@@ -37,11 +42,11 @@ export default function Customers() {
                   href={`customers/${customer.id}`}
                   className="btn btn-primary"
                 >
-                  View
+                  View addresses
                 </Link>
                 <Link
                   href={`customers/${customer.id}/edit`}
-                  className="btn btn-info"
+                  className="btn btn-success"
                 >
                   Edit
                 </Link>
